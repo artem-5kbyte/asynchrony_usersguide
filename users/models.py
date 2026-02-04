@@ -12,10 +12,11 @@ class CustomUserManager(BaseUserManager):
         #  Створюється юзер, він модель. А модель має в собі поля які користувач ввів
         user.set_password(password) # Вказуємо пароль
         user.save(using=self._db) # Зберігаємо в нашу базу даних
+        return user
 
 
     # Нам необхідно задати поля для створення супер юзера, бо він видаватиме помилку через те зо потребує дефолтних полів
-    def create_superuser(self, email, first_name, last_name, password, **extra_fields):
+    def create_superuser(self, email, first_name, last_name, password, username=None, **extra_fields):
         extra_fields.setdefault('is_staff', True)
         extra_fields.setdefault('is_superuser', True)
         #!  extra_fields це Права користувача /\
@@ -25,8 +26,9 @@ class CustomUserManager(BaseUserManager):
 
         if extra_fields.get('is_superuser') is not True:
             raise ValueError('Супер користувач повинен бути is_superuser=True.')
-
-        return self.create_user(email, first_name, last_name, password, **extra_fields)
+        if username is None:
+            username = email.split('@')[0]
+        return self.create_user(email, first_name, username, last_name, password, **extra_fields)
 
 
 class CustomUser(AbstractUser):
@@ -59,9 +61,13 @@ class CustomUser(AbstractUser):
         return self.email
 
     def clean(self):
+        # Метод clean() у моделі викликається перед збереженням об'єкта
         for field in ['phone', 'address1', 'address2', 'city', 'country', 'province',
-                      'postal_code']:  # Проходимся по всіх полях
+                      'postal_code']:  # Проходимося по всіх полях, які можуть містити текст
             value = getattr(self, field)
+            # Отримуємо значення поля з об'єкта моделі
             if value:
+                # Якщо поле не порожнє
                 setattr(self, field, strip_tags(value))
+                # Очищаємо значення від HTML і записуємо назад у модель
 

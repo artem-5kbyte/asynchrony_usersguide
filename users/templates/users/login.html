@@ -1,0 +1,30 @@
+{% extends 'users/base.html' %}
+
+{% block title %}Вхід{% endblock %}
+
+{% block content %}
+<h1> Увійти </h1>
+<form method="post" class="reg-form">
+    {% csrf_token %}
+    <div class="form-group">
+        <label for="{{ form.username.id_for_label }}"> Електронна пошта </label>
+        {{ form.username }}
+        {% if form.username.errors %}
+            <div class="error">{{ form.username.errors }}</div>
+        {% endif %}
+    </div>
+
+    <div class="form-group">
+        <label for="{{ form.password.id_for_label }}"> Пароль </label>
+        {{ form.password }}
+        {% if form.password.errors %}
+            <div class="error">{{ form.password.errors }}</div>
+        {% endif %}
+    </div>
+
+
+    <button type="submit" > Увійти </button>
+    <p> Не маєте акаунту? <a href="{% url 'users:register' %}" class="link"> Зареєструватись </a> </p>
+
+</form>
+{% endblock %}

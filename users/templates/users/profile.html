@@ -1,0 +1,37 @@
+{% extends 'users/base.html' %}
+
+{% block title %}Ваш профіль{% endblock %}
+
+{% block content %}
+<h1 > Привіт! {{ request.user.first_name|upper }} {{ request.user.last_name|upper }} </h1>
+<div class="profile-section">
+
+    <p class="default-address"><h2>Детальніше</h2></p>
+    <p><strong>Ім'я:</strong> {{ user.first_name }},  {{ user.last_name }}</p>
+    <p><strong>Email:</strong> {{ user.email }}</p>
+    <p><strong>Тег:</strong> @{{ user.username }}</p>
+    <p><strong>Номер телефону: </strong>{{ request.user.phone|default:"Невідомий" }}</p>
+    <p><strong>Країна: </strong>{{ request.user.country|default:"Не обрано" }}</p>
+    <br>
+    <hr>
+    <br>
+    <div id="profile-content">
+                {% include 'users/partials/account_details.html' %}
+    </div>
+<!--    <button hx-get="{% url 'users:edit_account_details' %}"-->
+<!--                hx-target="#account-details-content"-->
+<!--                hx-swap="innerHTML">-->
+<!--        Змінити-->
+<!--    </button>-->
+    <br>
+    <br>
+
+    <div id="account-details-content"></div>
+    <form method="post" action="{% url 'users:logout' %}">
+        {% csrf_token %}
+         <button type="submit"> Вийти </button>
+    </form>
+
+</div>
+
+{% endblock %}

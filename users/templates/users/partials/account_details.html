@@ -1,0 +1,43 @@
+<div class="address-box">
+    <p class="default-address">Інформація про доставку</p>
+    <p><strong>Ім'я:</strong> {{ user.first_name }},  {{ user.last_name }}</p>
+    <p><strong>Email:</strong> {{ user.email }}</p>
+    <p><strong>Тег:</strong> @{{ user.username }}</p>
+
+    {% if user.phone %}
+        <p><strong>Телефон:</strong> {{ user.phone }}</p>
+    {% endif %}
+
+    {% if user.address1 %}
+        <p><strong>Адреса:</strong> {{ user.address1 }}</p>
+    {% endif %}
+
+    {% if user.address2 %}
+        <p><strong>Будинок:</strong> {{ user.address2 }}</p>
+    {% endif %}
+
+    {% if user.country %}
+        <p><strong>Країна:</strong> {{ user.country }}</p>
+    {% endif %}
+
+    {% if user.city %}
+        <p><strong>Місто:</strong> {{ user.city }}</p>
+    {% endif %}
+
+    {% if user.province %}
+        <p><strong>Область:</strong> {{ user.province }}</p>
+    {% endif %}
+
+    {% if user.postal_code %}
+        <p><strong>Поштовий код:</strong> {{ user.postal_code }}</p>
+    {% endif %}
+
+    <div class="button-container mt-3">
+        <button hx-get="{% url 'users:edit_account_details' %}"
+                hx-target="closest .address-box"
+                hx-swap="outerHTML"
+                class="btn btn-primary">
+            Змінити
+        </button>
+    </div>
+</div>

@@ -1,0 +1,108 @@
+<div class="address-box">
+    <form hx-post="{% url 'users:update_account_details' %}"
+          hx-target="closest .address-box"
+          hx-swap="outerHTML"
+          hx-trigger="submit"
+          class="edit-form">
+        {% csrf_token %}
+
+        <div class="row">
+            <div class="col-md-6">
+                <div class="form-group mb-3">
+                    <label for="{{ form.first_name.id_for_label }}">Ім'я *</label>
+                    {{ form.first_name }}
+                    {% if form.first_name.errors %}
+                        <div class="text-danger small">{{ form.first_name.errors }}</div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <div class="col-md-6">
+                <div class="form-group mb-3">
+                    <label for="{{ form.last_name.id_for_label }}">Прізвище *</label>
+                    {{ form.last_name }}
+                    {% if form.last_name.errors %}
+                        <div class="text-danger small">{{ form.last_name.errors }}</div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <div class="form-group mb-3">
+            <label for="{{ form.email.id_for_label }}">Email *</label>
+            {{ form.email }}
+            {% if form.email.errors %}
+                <div class="text-danger small">{{ form.email.errors }}</div>
+            {% endif %}
+        </div>
+
+        <div class="form-group mb-3">
+            <label for="{{ form.username.id_for_label }}">Тег *</label>
+            {{ form.username }}
+            {% if form.username.errors %}
+                <div class="text-danger small">{{ form.username.errors }}</div>
+            {% endif %}
+        </div>
+
+        <div class="form-group mb-3">
+            <label for="{{ form.phone.id_for_label }}">Телефон</label>
+            {{ form.phone }}
+            {% if form.phone.errors %}
+                <div class="text-danger small">{{ form.phone.errors }}</div>
+            {% endif %}
+        </div>
+
+        <div class="form-group mb-3">
+            <label for="{{ form.address1.id_for_label }}">Адреса</label>
+            {{ form.address1 }}
+        </div>
+
+        <div class="form-group mb-3">
+            <label for="{{ form.address2.id_for_label }}">Буд.</label>
+            {{ form.address2 }}
+        </div>
+
+        <div class="row">
+            <div class="col-md-6">
+                <div class="form-group mb-3">
+                    <label for="{{ form.city.id_for_label }}">Місто</label>
+                    {{ form.city }}
+                </div>
+            </div>
+
+            <div class="col-md-6">
+                <div class="form-group mb-3">
+                    <label for="{{ form.province.id_for_label }}">Область</label>
+                    {{ form.province }}
+                </div>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-md-6">
+                <div class="form-group mb-3">
+                    <label for="{{ form.country.id_for_label }}">Країна</label>
+                    {{ form.country }}
+                </div>
+            </div>
+
+            <div class="col-md-6">
+                <div class="form-group mb-3">
+                    <label for="{{ form.postal_code.id_for_label }}">Поштовий код</label>
+                    {{ form.postal_code }}
+                </div>
+            </div>
+        </div>
+
+        <div class="button-container mt-4">
+            <button type="submit" class="btn btn-success">Зберегти зміни</button>
+            <button type="button"
+                    hx-get="{% url 'users:account_details' %}"
+                    hx-target="closest .address-box"
+                    hx-swap="outerHTML"
+                    class="btn btn-secondary">
+                Скасувати
+            </button>
+        </div>
+    </form>
+</div>

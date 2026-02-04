@@ -10,15 +10,15 @@ class CustomUserCreationForm(UserCreationForm):
     email = forms.EmailField(required=True, max_length=150,
                              widget=forms.EmailInput(attrs={'class': 'input-register form-control', 'placeholder':'Ваш email'}))
     username = forms.CharField(required=True, max_length=150,
-                               widget=forms.CharField(attrs={'class': 'input-register form-control', 'placeholder':'Ваш тег'}))
+                               widget=forms.TextInput(attrs={'class': 'input-register form-control', 'placeholder':'Ваш тег'}))
     first_name = forms.CharField(required=True, max_length=150,
-                                 widget=forms.CharField(attrs={'class': 'input-register form-control', 'placeholder':'Ім`я'}))
+                                 widget=forms.TextInput(attrs={'class': 'input-register form-control', 'placeholder':'Ім`я'}))
     last_name = forms.CharField(required=True, max_length=150,
-                                widget=forms.CharField(attrs={'class': 'input-register form-control', 'placeholder':'Прізвище'}))
+                                widget=forms.TextInput(attrs={'class': 'input-register form-control', 'placeholder':'Прізвище'}))
     password1 = forms.CharField(required=True, max_length=150,
-                                widget=forms.CharField(attrs={'class': 'input-register form-control', 'placeholder':'Пароль'}))
+                                widget=forms.PasswordInput(attrs={'class': 'input-register form-control', 'placeholder':'Пароль'}))
     password2 = forms.CharField(required=True, max_length=150,
-                                widget=forms.CharField(attrs={'class': 'input-register form-control', 'placeholder':'Повторіть пароль'}))
+                                widget=forms.PasswordInput(attrs={'class': 'input-register form-control', 'placeholder':'Повторіть пароль'}))
     marketing_consent1 = forms.BooleanField(required=False,
                                             label='Підписатись на розсилку пропозицій',
                                             widget=forms.CheckboxInput(attrs={'class': 'checkbox-input-register'}))
@@ -48,14 +48,14 @@ class CustomUserLoginForm(AuthenticationForm):
     username = forms.CharField(required=True, max_length=150, label='Email',
                                widget=forms.TextInput(attrs={'autofocus': True, 'class': 'input-register form-control', 'placeholder':'Email'}))
     password = forms.CharField(required=True, max_length=150, label='Password',
-                               widget=forms.TextInput(attrs={'autofocus': True, 'class': 'input-register form-control', 'placeholder':'Пароль'}))
+                               widget=forms.PasswordInput(attrs={'autofocus': True, 'class': 'input-register form-control', 'placeholder':'Пароль'}))
 
     def clean(self):
         email = self.cleaned_data.get('username') # Беремо емейл з форми
         password = self.cleaned_data.get('password') # Беремо емейл з форми
 
         if email and password: # Перевіряємо, що обидва поля заповнені
-            self.user_cache = authenticate(self.request, email=email, password=password) # Пробуємо знайти користувача з такими даними
+            self.user_cache = authenticate(self.request, username=email, password=password) # Пробуємо знайти користувача з такими даними
             if self.user_cache is None: # Якщо користувача не знайдено
                 raise forms.ValidationError('Невірний email або пароль користувача.')
             elif not self.user_cache.is_active: # Якщо акаунт вимкнений
@@ -83,6 +83,8 @@ class CustomUserUpdateForm(forms.ModelForm):
         model = User
         fields = ('first_name', 'last_name','phone', 'username',  'email',
                   'address1', 'address2', 'city', 'country', 'province', 'postal_code', 'marketing_consent1', 'marketing_consent2')
+        # Перелік полів моделі User, які будуть відображені та оброблені у формі
+
         widgets = {
             'email': forms.EmailInput(attrs={'class': 'input-register form-control', 'placeholder': 'Ваш email'}),
             'first_name': forms.TextInput(attrs={'class': 'input-register form-control', 'placeholder': 'Ім`я'}),
@@ -96,21 +98,23 @@ class CustomUserUpdateForm(forms.ModelForm):
             'postal_code': forms.TextInput(attrs={'class': 'input-register form-control', 'placeholder': 'Поштовий код'}),
         }
     def clean_email(self):
-        email = self.cleaned_data.get('email')
-        if email and User.objects.filter(email=email).exclude(id=self.instance.id).exists(): # Беремо емейл і перевіряємо користувачів по емейлу виключаємо ід того користувача який робить запит і перевіряємо чи є в бд такі записи
-            # по такому емейлу але бкз врахування самого користувача.
+        email = self.cleaned_data.get('email') # Беремо email, який користувач ввів у форму
+        if email and User.objects.filter(email=email).exclude(id=self.instance.id).exists():
+            # Перевіряємо, чи існує інший користувач з таким email,
+            # але виключаємо поточного користувача (self.instance.id)
             raise forms.ValidationError("Цей email вже використовується.")
         return email
+        # Повертаємо перевірений email
 
     def clean(self):
         cleaned_data = super().clean()
+        # Отримуємо всі перевірені дані після стандартної валідації Django
+        if not cleaned_data.get('email'): # Якщо email не передали або він порожній
+            cleaned_data['email'] = self.instance.email # Беремо email з існуючого користувача (щоб не затерти його)
 
-        if not cleaned_data.get('email'): # Якщо емейл не заданий
-            cleaned_data['email'] = self.instance.email # Використовуємо той email який був
-
-            for field in ['phone', 'address1', 'address2', 'city', 'country', 'province', 'postal_code']: # Проходимся по всіх полях
-                if cleaned_data.get(field):
+            for field in ['phone', 'address1', 'address2', 'city', 'country', 'province', 'postal_code']: # Проходимося по текстових полях
+                if cleaned_data.get(field): # Якщо поле заповнене
                     cleaned_data[field] = strip_tags(cleaned_data[field])
+                    # Видаляємо HTML-теги (захист від XSS)
         return cleaned_data
-
-
+        # Повертаємо очищені дані
