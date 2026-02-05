@@ -28,7 +28,7 @@ def login_view(request):
     return render(request, 'users/login.html', {'form': form})
 
 @login_required
-def profile_views(request):
+def profile_views(request): # Для перегляду профіля
     return render(request, 'users/profile.html', {'user': request.user}) # Передаємо в контекст даного юзера
 
 # Представлення для htmx. Яке динамічно міняє контент сторінки без перезагрузки роблячи запити до серверу
