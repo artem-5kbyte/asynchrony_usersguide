@@ -25,6 +25,7 @@
 
     <button type="submit" > Увійти </button>
     <p> Не маєте акаунту? <a href="{% url 'users:register' %}" class="link"> Зареєструватись </a> </p>
+    <p> Забули пароль? <a href="{% url 'users:password_reset_request' %}" class="link"> Скинути пароль </a> </p>
 
 </form>
 {% endblock %}

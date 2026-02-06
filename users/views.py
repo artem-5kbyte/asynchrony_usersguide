@@ -1,8 +1,16 @@
+from django.contrib import messages
 from django.shortcuts import render, redirect
 from django.contrib.auth import login, authenticate, logout
 from django.contrib.auth.decorators import login_required
-from .forms import CustomUserLoginForm, CustomUserUpdateForm, CustomUserCreationForm
+from .forms import CustomUserLoginForm, CustomUserUpdateForm, CustomUserCreationForm, PasswordResetRequestForm, PasswordResetConfirmForm
 from .models import CustomUser
+
+# New
+from .tasks import send_welcome_email, send_password_reset_email
+from django.contrib.auth.tokens import default_token_generator
+from django.utils.http import urlsafe_base64_decode
+from django.utils.encoding import force_str
+import logging
 
 def register(request):
     if request.method == 'POST': # Перевіряємо на пост запит. Спрацьовуватиме тоді коли буде пост запит
@@ -11,6 +19,9 @@ def register(request):
             user = form.save() # Зберігаємо користувача
             login(request, user, backend='django.contrib.auth.backends.ModelBackend')
             # логінимо збереженого користувача і передаємо бекенд для того щоб запобігти конфліктів з дефолтним бекендом
+
+            send_welcome_email.delay(user.email, user.first_name) # Відправляємо повідомлення. В таску передали пошту і ім'я
+
             return redirect('users:profile')  # Редіректимо на профіль
     else:
         form = CustomUserCreationForm() # Якщо форма не валідна. Виводимо пусту форму і помилки
@@ -60,3 +71,53 @@ def update_account_details(request):
 def logout_view(request):
     logout(request)
     return redirect('users:register')
+
+
+
+def password_reset_request(request): # Надіслати запит на зміну пароля
+    if request.method == 'POST': # Якщо надсилаємо форму
+        form = PasswordResetRequestForm(request.POST) # Ініціалізуємо форму з даними
+        if form.is_valid(): # Якщо дані валідні
+            email = form.cleaned_data['email'] # Беремо пошту з очищених даних з ініціалізованої форми
+            user = CustomUser.objects.filter(email=email).first() # Беремо користувача який це надіслав за допомогою пошти яку ми взяли вище
+            if user: # Якщо такий користувач існує
+                logging.info(f'Attempting to send password reset email to {email}, for user id {user.pk}') # Логуємо початок
+
+                send_password_reset_email.delay(email, user.pk) # Запускаємо таску на пошту, передаючи емейл і ід користувача
+
+                messages.success(request, 'Скидання пароля в черзі. Будь ласка, перевірте свою поштову скриньку для того щоб скинути пароль.')
+                # Повідомлення відправлено очікуйте для користувача
+                return render(request, 'users/password_reset_done.html', {'email': email})  # Рендеримо сторінку на якій буде повідомлення представленне вище
+            else:
+                messages.warning(request, 'Не знайдено акаунта для цієї пошти.') # Нема акаунта повідомлення
+        else:
+            messages.warning(request, 'Введіть правильну електронну адресу.') # Неправильно заповнена форма
+    else:
+        form = PasswordResetRequestForm() # Ініціалізація для сторінки, та сама сторінка х переданим контекстом форми
+    return render(request, 'users/password_reset_request.html', {'form': form})
+
+
+def password_reset_confirm(request, uidb64, token): # Коли користувач перейшов за посиланням видачі нового пароля
+    # Приймаємо запит, юідб64 і токен який є в тасці. Перейшов по посиланню, ми по цьому посиланню приймаємо ці 2 елемента
+    # Які згенеровані для користувача і відправлені в вигляді посилання на пошту
+    try: # Пробуємо співставити нашого користувача. "Чи правда що це та людина"
+        uid = force_str(urlsafe_base64_decode(uidb64)) # Розшифровуємо юід яке відправляли зашифроване
+        user = CustomUser.objects.get(pk=uid) # Перевіряємо чи є такий в нашій БД
+    except (TypeError, ValueError, OverflowError, CustomUser.DoesNotExist):
+        user = None # Якщо нема то так і записуємо
+
+    # Якщо користувач є і перевіряємо користувача і його токен, якщо вони співпадають
+    if user is not None and default_token_generator.check_token(user, token):
+        if request.method == 'POST':
+            form = PasswordResetConfirmForm(request.POST)
+            if form.is_valid():
+                user.set_password(form.cleaned_data['new_password1']) # Встановлюємо новий пароль, який користувач ввів
+                user.save() # Зберігаємо користувача
+                messages.success(request, 'Ваш пароль змінено успішно!') # Вивід повідомлення користувачу
+                return render(request, 'users/password_reset_complete.html') # Повертаємо сторінку з успішним повідомленням
+        else:
+            form = PasswordResetConfirmForm() # На початкову сторінку, зарендеримо сторінку і форми
+        return render(request, 'users/password_reset_confirm.html', {'form': form, 'validlink': True})
+    else:
+        # Якщо користувач не знайшовся. Якщо валід лінк фалсе виведемо повідомлення що посилання не валідне
+        return render(request, 'users/password_reset_confirm.html', {'validlink': False})

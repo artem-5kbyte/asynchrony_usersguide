@@ -64,7 +64,7 @@ class CustomUserLoginForm(AuthenticationForm):
 
 class CustomUserUpdateForm(forms.ModelForm):
     phone = forms.CharField(required=False,
-                            validators=[RegexValidator('^\+?1?\d{9,15}$', "Введіть правильний номер телефону")],
+                            validators=[RegexValidator(r'^\+?1?\d{9,15}$', "Введіть правильний номер телефону")],
                             widget=forms.TextInput(attrs={'class': 'input-register form-control', 'placeholder':'Номер телефону'}))
     username = forms.CharField(required=True,
                                max_length=150,
@@ -118,3 +118,26 @@ class CustomUserUpdateForm(forms.ModelForm):
                     # Видаляємо HTML-теги (захист від XSS)
         return cleaned_data
         # Повертаємо очищені дані
+
+class PasswordResetRequestForm(forms.Form):
+    email = forms.EmailField(required=True, max_length=150,
+                             widget=forms.EmailInput(
+                                 attrs={'class': 'input-register form-control', 'placeholder': 'Ваш email'}))
+
+
+class PasswordResetConfirmForm(forms.Form):
+    new_password1 = forms.CharField(required=True, max_length=150,
+                                widget=forms.PasswordInput(
+                                    attrs={'class': 'input-register form-control', 'placeholder': 'Пароль'}))
+    new_password2 = forms.CharField(required=True, max_length=150,
+                                widget=forms.PasswordInput(
+                                    attrs={'class': 'input-register form-control', 'placeholder': 'Повторіть пароль'}))
+
+    def clean(self): # Перевизначення вже існуючої функції
+        cleaned_data = super().clean() # Виклик батківського методу
+        new_password1 = cleaned_data.get('new_password1') #
+        new_password2 = cleaned_data.get('new_password2')  # Беремо з очищених полів нові паролі
+        if new_password1 and new_password2 and new_password1 != new_password2: # Якщо new_password пустий або 1 не = 2 тоді видаємо помилку
+            raise forms.ValidationError('')
+        return cleaned_data # Повертаємо для того щоб в подальшому в views могли використовувати для зміни чи звертання в БД щоб змінити пароль користувачу
+    
