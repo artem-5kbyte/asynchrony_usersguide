@@ -3,6 +3,9 @@
 {% block title %}Реєстрація{% endblock %}
 
 {% block content %}
+{% if user.is_authenticated %}
+    <p class="reg-form">Ви вже авторизовані!</p>
+{% else %}
 <h1>Зареєструватися</h1>
 <form method="post" class="reg-form">
     {% csrf_token %}
@@ -74,4 +77,5 @@
     <p> Вже маєте аккаунт? <a href="{% url 'users:login' %}" class="link"> Увійти </a> </p>
     
 </form>
+{% endif %}
 {% endblock %}

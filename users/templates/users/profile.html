@@ -3,8 +3,19 @@
 {% block title %}Ваш профіль{% endblock %}
 
 {% block content %}
+{% if user.is_authenticated %}
 <h1 > Привіт! {{ request.user.first_name|upper }} {{ request.user.last_name|upper }} </h1>
 <div class="profile-section">
+
+     {% if messages %}
+        <div class="messages">
+            {% for message in messages %}
+            <div class="{{ message.tags }}">{{ message }}</div>
+            {% endfor %}
+        </div>
+    {% endif %}
+
+
 
     <p class="default-address"><h2>Детальніше</h2></p>
     <p><strong>Ім'я:</strong> {{ user.first_name }},  {{ user.last_name }}</p>
@@ -12,6 +23,17 @@
     <p><strong>Тег:</strong> @{{ user.username }}</p>
     <p><strong>Номер телефону: </strong>{{ request.user.phone|default:"Невідомий" }}</p>
     <p><strong>Країна: </strong>{{ request.user.country|default:"Не обрано" }}</p>
+    <strong>Активація акаунту:</strong>
+        {% if request.user.email_confirmed %}
+            ✅ Підтверджено
+        {% else %}
+            ❌ Не підтверджено
+            <form method="post" action="{% url 'users:account_activation_request' %}">
+                {% csrf_token %}
+                 <button type="submit"> Активувати </button>
+            </form>
+        {% endif %}
+
     <br>
     <hr>
     <br>
@@ -33,5 +55,5 @@
     </form>
 
 </div>
-
+{% endif %}
 {% endblock %}

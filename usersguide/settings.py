@@ -127,6 +127,8 @@ MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
 AUTH_USER_MODEL = 'users.CustomUser' # Вказуємо модель для того щоб її використовував джаннго
+LOGIN_URL = 'users:login'
+LOGOUT_REDIRECT_URL = 'users:login'
 
 # Celery settings
 CELERY_BROKER_URL = 'redis://localhost:6379/0' # Redis як брокер
@@ -145,3 +147,7 @@ EMAIL_HOST_USER = os.getenv('EMAIL_HOST_USER')
 EMAIL_HOST_PASSWORD = os.getenv('EMAIL_HOST_PASSWORD')
 DEFAULT_FROM_EMAIL = os.getenv('DEFAULT_FROM_EMAIL')
 SITE_URL = 'http://127.0.0.1:8000'
+
+# Час життя токена
+PASSWORD_RESET_TIMEOUT = 14400 # 4 hours активний для посилання
+

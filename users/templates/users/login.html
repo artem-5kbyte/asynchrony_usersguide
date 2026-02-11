@@ -3,6 +3,9 @@
 {% block title %}Вхід{% endblock %}
 
 {% block content %}
+{% if user.is_authenticated %}
+    <p class="reg-form">Ви вже авторизовані!</p>
+{% else %}
 <h1> Увійти </h1>
 <form method="post" class="reg-form">
     {% csrf_token %}
@@ -24,8 +27,10 @@
 
 
     <button type="submit" > Увійти </button>
+
+
     <p> Не маєте акаунту? <a href="{% url 'users:register' %}" class="link"> Зареєструватись </a> </p>
     <p> Забули пароль? <a href="{% url 'users:password_reset_request' %}" class="link"> Скинути пароль </a> </p>
-
+{% endif %}
 </form>
 {% endblock %}

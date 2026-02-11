@@ -16,5 +16,9 @@ urlpatterns = [
     path('password_reset/', views.password_reset_request, name='password_reset_request'),
     # Юідб і токен який ми повинні були передати в посиланні
     path('password_reset/<uidb64>/<token>/', views.password_reset_confirm, name='password_reset_confirm'),
+
+    path('account_activation_request/', views.account_activation_request, name='account_activation_request'),
+    path('account_activation_confirm/<uidb64>/<token>/', views.account_activation_confirm, name='account_activation_confirm'),
+
 ]
 

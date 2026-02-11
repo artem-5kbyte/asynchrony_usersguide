@@ -47,6 +47,8 @@ class CustomUser(AbstractUser):
     marketing_consent1 = models.BooleanField(default=False) # Розсилка на рекламу
     marketing_consent2 = models.BooleanField(default=False)
 
+    email_confirmed = models.BooleanField(default=False)
+
     """
      За замовчуванням якщо ми навіть створимо модель, Джанго потребуватиме нікнейм для реєстрації 
      Для того щоб зробити реєстрацію по пошті
